@@ -1,6 +1,10 @@
 package com.example.nav_room.ui.screens
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import android.provider.MediaStore
 import android.util.Log
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -29,13 +33,10 @@ fun DetailScreen(
     viewModel: NoteViewModel,
     noteId: Int?
 ) {
-    // Mengambil LifecycleOwner lokal
     val lifecycleOwner = LocalLifecycleOwner.current
-
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
     var photoUri by remember { mutableStateOf<String?>(null) }
-
     val context = LocalContext.current
     val cameraExecutor: ExecutorService = remember { Executors.newSingleThreadExecutor() }
     val imageCapture = remember { ImageCapture.Builder().build() }
@@ -77,6 +78,7 @@ fun DetailScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Menampilkan foto yang sudah dipilih atau diambil
         if (photoUri != null) {
             AsyncImage(
                 model = Uri.parse(photoUri),
@@ -89,6 +91,7 @@ fun DetailScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Button untuk mengambil foto menggunakan kamera
         Button(
             onClick = {
                 val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
@@ -130,6 +133,21 @@ fun DetailScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Button untuk memilih gambar dari galeri
+        Button(
+            onClick = {
+                // Membuka galeri untuk memilih gambar
+                val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+                (context as? Activity)?.startActivityForResult(intent, PICK_IMAGE_REQUEST)
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Select Photo from Gallery")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Tombol untuk menyimpan atau memperbarui catatan
         Button(
             onClick = {
                 if (noteId == null) {
@@ -142,6 +160,17 @@ fun DetailScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = if (noteId == null) "Save Note" else "Update Note")
+        }
+    }
+}
+
+// Menangani hasil gambar yang dipilih
+const val PICK_IMAGE_REQUEST = 1001
+
+fun handleImageResult(resultCode: Int, data: Intent?, context: Context, onImagePicked: (Uri) -> Unit) {
+    if (resultCode == Activity.RESULT_OK) {
+        data?.data?.let {
+            onImagePicked(it)
         }
     }
 }

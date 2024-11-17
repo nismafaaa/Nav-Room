@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
             AppNavGraph(navController = navController, viewModel)
         }
     }
+
 }
 
 @Preview(showBackground = true)
